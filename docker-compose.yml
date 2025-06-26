@@ -1,0 +1,32 @@
+#version: '3.8'
+
+services:
+  db:
+    image: postgres:14
+    environment:
+      POSTGRES_DB: student_exam_db
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: 123
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  backend:
+    build: ./backend
+    command: bash -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
+    volumes:
+      - ./backend:/app
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    environment:
+      - POSTGRES_NAME=student_exam_db
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=123
+      - POSTGRES_HOST=db
+      - DATABASE_URL=postgres://admin:123@db:5432/student_exam_db
+
+volumes:
+  postgres_data:

@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Transfer Student{% endblock %}
+{% block content %}
+<h2 class="text-xl font-bold mb-4">Search Student to Transfer</h2>
+<form method="get" action="" id="student-search-form">
+    <input type="text" id="student-search" name="q" class="border p-2 w-full max-w-lg"
+        placeholder="Search by name or admission number..." autocomplete="off" />
+</form>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<link href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css" rel="stylesheet">
+<script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
+
+<script>
+    $(function () {
+        $("#student-search").autocomplete({
+            source: "{% url 'student_transfer_search' %}",
+            minLength: 1,
+            select: function (event, ui) {
+                if (ui.item && ui.item.id) {
+                    window.location.href = `/api/students/transfer/${ui.item.id}/`;
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

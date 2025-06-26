@@ -1,0 +1,65 @@
+{% extends "base.html" %} {% block content %}
+<h2>Registered Students</h2>
+
+<form method="get" action=".">
+  <input
+    type="text"
+    name="q"
+    placeholder="Search by name or admission number..."
+    value="{{ request.GET.q }}"
+  />
+  <button type="submit">Search</button>
+  <a href="{% url 'student_register' %}">+ Register New Student</a>
+</form>
+
+{% if students %}
+<table>
+  <thead>
+    <tr>
+      <th>Photo</th>
+      <th>Name</th>
+      <th>Admission #</th>
+      <th>Class</th>
+      <th>Stream</th>
+      <th>Gender</th>
+      <th>Profile</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for student in students %}
+    <tr>
+      <td>
+        {% if student.photo %}
+        <img src="{{ student.photo.url }}" width="50" height="50" alt="Photo" />
+        {% else %} N/A {% endif %}
+      </td>
+      <td>{{ student.full_name }}</td>
+      <td>{{ student.admission_number }}</td>
+      <td>{{ student.class_ref }}</td>
+      <td>{{ student.stream }}</td>
+      <td>{{ student.get_gender_display }}</td>
+      <td><a href="{% url 'student_detail' student.pk %}">View</a></td>
+
+      <!-- Detail view to be added -->
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+{% if is_paginated %}
+<div class="pagination">
+  {% if page_obj.has_previous %}
+  <a href="?q={{ request.GET.q }}&page={{ page_obj.previous_page_number }}"
+    >Previous</a
+  >
+  {% endif %}
+
+  <span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+
+  {% if page_obj.has_next %}
+  <a href="?q={{ request.GET.q }}&page={{ page_obj.next_page_number }}">Next</a>
+  {% endif %}
+</div>
+{% endif %} {% else %}
+<p>No students found.</p>
+{% endif %} {% endblock %}

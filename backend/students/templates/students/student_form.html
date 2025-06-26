@@ -1,0 +1,12 @@
+{% extends "base.html" %} {% block content %}
+<h2>Edit Student: {{ form.instance.full_name }}</h2>
+
+<form method="post" enctype="multipart/form-data">
+  {% csrf_token %}
+  <table>
+    {{ form.as_table }}
+  </table>
+  <button type="submit">Save Changes</button>
+  <a href="{% url 'student_detail' form.instance.pk %}">Cancel</a>
+</form>
+{% endblock %}

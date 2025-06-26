@@ -1,0 +1,7 @@
+# requirements.txt
+Django>=4.2
+psycopg2-binary
+djangorestframework
+dj-rest-auth
+django-cors-headers
+django-allauth

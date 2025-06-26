@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Register Student{% endblock %}
+
+{% block content %}
+{% if messages %}
+<ul class="mb-4">
+  {% for message in messages %}
+  <li class="bg-green-100 text-green-800 p-3 rounded-md mb-2">{{ message }}</li>
+  {% endfor %}
+</ul>
+{% endif %}
+
+<div class="container mx-auto px-4 py-8 bg-white shadow-md rounded-md max-w-4xl">
+  <h2 class="text-2xl font-bold mb-6 border-b pb-2">Register Student</h2>
+
+  <form method="post" enctype="multipart/form-data" class="space-y-6">
+    {% csrf_token %}
+
+    <fieldset class="border border-gray-300 p-4 rounded mb-6">
+      <legend class="text-lg font-semibold mb-2">Personal Information</legend>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {{ form.first_name.label_tag }} {{ form.first_name }}
+        {{ form.middle_name.label_tag }} {{ form.middle_name }}
+        {{ form.last_name.label_tag }} {{ form.last_name }}
+        {{ form.date_of_birth.label_tag }} {{ form.date_of_birth }}
+        {{ form.gender.label_tag }} {{ form.gender }}
+        {{ form.photo.label_tag }} {{ form.photo }}
+      </div>
+    </fieldset>
+
+    <fieldset class="border border-gray-300 p-4 rounded mb-6">
+      <legend class="text-lg font-semibold mb-2">Academic Placement</legend>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {{ form.class_ref.label_tag }} {{ form.class_ref }}
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+        <script>
+          $(document).ready(function () {
+            function loadStreams(classId) {
+              if (classId) {
+                $.ajax({
+                  url: `/api/students/streams/?class_id=${classId}`,
+                  success: function (data) {
+                    const streamField = $("select[name='stream']");
+                    streamField.empty();
+                    streamField.append('<option value="">Select Stream</option>');
+                    data.forEach(function (stream) {
+                      streamField.append(`<option value="${stream.id}">${stream.name}</option>`);
+                    });
+                  }
+                });
+              }
+            }
+
+            // Trigger on page load if a class is selected
+            const currentClass = $("select[name='class_ref']").val();
+            if (currentClass) {
+              loadStreams(currentClass);
+            }
+
+            // Trigger on class change
+            $("select[name='class_ref']").change(function () {
+              const classId = $(this).val();
+              loadStreams(classId);
+            });
+          });
+        </script>
+
+        {{ form.stream.label_tag }} {{ form.stream }}
+        {{ form.date_admitted.label_tag }} {{ form.date_admitted }}
+      </div>
+    </fieldset>
+
+    <fieldset class="border border-gray-300 p-4 rounded mb-6">
+      <legend class="text-lg font-semibold mb-2">Guardian Contact</legend>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {{ form.guardian_name.label_tag }} {{ form.guardian_name }}
+        {{ form.guardian_contact.label_tag }} {{ form.guardian_contact }}
+        {{ form.guardian_email.label_tag }} {{ form.guardian_email }}
+        {{ form.emergency_contact.label_tag }} {{ form.emergency_contact }}
+      </div>
+      <div class="mt-4">
+        {{ form.address.label_tag }} {{ form.address }}
+      </div>
+    </fieldset>
+
+    {% if form.admission_number %}
+    <div>
+      {{ form.admission_number.label_tag }} {{ form.admission_number }}
+    </div>
+    {% endif %}
+
+    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded">
+      Register
+    </button>
+  </form>
+</div>
+{% endblock %}

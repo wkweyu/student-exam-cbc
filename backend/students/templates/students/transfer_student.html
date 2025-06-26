@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}Transfer Student{% endblock %}
+{% block content %}
+<h2 class="text-xl font-bold mb-4">Transfer Student</h2>
+
+<p class="mb-4">Student: <strong>{{ student.full_name }}</strong> ({{ student.admission_number }})</p>
+<p class="mb-4">Current Class: <strong>{{ student.class_ref }}</strong>, Stream: <strong>{{ student.stream }}</strong>
+</p>
+
+<form method="post">
+  {% csrf_token %}
+  <label class="block mt-4">New Class</label>
+  <select name="class_id" id="class-select" class="border p-2 w-full">
+    <option value="">-- Select Class --</option>
+    {% for cls in classes %}
+    <option value="{{ cls.id }}">{{ cls }}</option>
+    {% endfor %}
+  </select>
+
+  <label class="block mt-4">New Stream</label>
+  <select name="stream_id" id="stream-select" class="border p-2 w-full">
+    <option value="">-- Select Stream --</option>
+    {% for stream in streams %}
+    <option value="{{ stream.id }}">{{ stream }}</option>
+    {% endfor %}
+  </select>
+
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script>
+    $(document).ready(function () {
+      $('#class-select').change(function () {
+        var classId = $(this).val();
+        if (classId) {
+          $.ajax({
+            url: '{% url "get_streams_by_class" %}',
+            data: {
+              'class_id': classId
+            },
+            success: function (data) {
+              var streamSelect = $('#stream-select');
+              streamSelect.empty();
+              streamSelect.append('<option value="">-- Select Stream --</option>');
+              $.each(data, function (index, stream) {
+                streamSelect.append('<option value="' + stream.id + '">' + stream.name + '</option>');
+              });
+            }
+          });
+        }
+      });
+    });
+  </script>
+
+</form>
+{% endblock %}

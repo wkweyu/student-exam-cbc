@@ -1,0 +1,85 @@
+{% extends "base.html" %} {% block content %}
+<h2>{{ student.full_name }} ({{ student.admission_number }})</h2>
+
+{% if student.photo %}
+<img src="{{ student.photo.url }}" width="120" alt="Student Photo" />
+{% else %}
+<p><em>No photo uploaded</em></p>
+{% endif %}
+
+<table>
+  <tr>
+    <th>Admission Number:</th>
+    <td>{{ student.admission_number }}</td>
+  </tr>
+  <tr>
+    <th>Full Name:</th>
+    <td>
+      {{ student.first_name }} {{ student.middle_name }} {{ student.last_name }}
+    </td>
+  </tr>
+  <tr>
+    <th>Date of Birth:</th>
+    <td>{{ student.date_of_birth }}</td>
+  </tr>
+  <tr>
+    <th>Gender:</th>
+    <td>{{ student.get_gender_display }}</td>
+  </tr>
+  <tr>
+    <th>Class:</th>
+    <td>{{ student.class_ref }}</td>
+  </tr>
+  <tr>
+    <th>Stream:</th>
+    <td>{{ student.stream }}</td>
+  </tr>
+  <tr>
+    <th>Guardian Name:</th>
+    <td>{{ student.guardian_name }}</td>
+  </tr>
+  <tr>
+    <th>Guardian Contact:</th>
+    <td>{{ student.guardian_contact }}</td>
+  </tr>
+  <tr>
+    <th>Email:</th>
+    <td>{{ student.guardian_email }}</td>
+  </tr>
+  <tr>
+    <th>Address:</th>
+    <td>{{ student.address }}</td>
+  </tr>
+  <tr>
+    <th>Emergency Contact:</th>
+    <td>{{ student.emergency_contact }}</td>
+  </tr>
+  <tr>
+    <th>Date Admitted:</th>
+    <td>{{ student.date_admitted }}</td>
+  </tr>
+  <tr>
+    <th>Status:</th>
+    <td>{{ "Active" if student.is_active else "Inactive" }}</td>
+  </tr>
+</table>
+
+<p>
+  <a href="{% url 'student_list' %}">← Back to List</a> |
+  <a href="{% url 'student_edit' student.pk %}">✏️ Edit</a>
+
+  <!-- Placeholder for Edit link -->
+</p>
+<h3>Promotion & Transfer History</h3>
+<ul>
+  {% for move in student.promotion_history.all %}
+  <li>
+    {{ move.date }}: {{ move.reason }} — from {{ move.from_class }} to {{
+    move.to_class }}
+  </li>
+  {% empty %}
+  <li>No promotion records yet.</li>
+  {% endfor %}
+</ul>
+
+{% endblock %}

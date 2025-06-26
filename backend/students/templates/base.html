@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>{% block title %}Student Exam Management{% endblock %}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}" />
+    <style>
+      body {
+        font-family: system-ui, sans-serif;
+        margin: 0;
+        padding: 0;
+        background: #f8fafc;
+        color: #1a202c;
+      }
+      header,
+      footer {
+        background-color: #2d3748;
+        color: white;
+        padding: 1rem;
+        text-align: center;
+      }
+      main {
+        padding: 2rem;
+        max-width: 960px;
+        margin: auto;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      th,
+      td {
+        border: 1px solid #ccc;
+        padding: 8px;
+        text-align: left;
+      }
+      th {
+        background: #f0f0f0;
+      }
+      img {
+        border-radius: 5px;
+      }
+      form {
+        margin-bottom: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Student Exam Management System (CBC)</h1>
+    </header>
+
+    <main>{% block content %} {% endblock %}</main>
+
+    <footer>
+      <p>&copy; {{ now|date:"Y" }} CBC System</p>
+    </footer>
+  </body>
+</html>

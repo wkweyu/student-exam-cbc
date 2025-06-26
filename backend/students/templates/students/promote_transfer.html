@@ -1,0 +1,175 @@
+{% extends "base.html" %}
+{% load static %}
+{% load json_script %}
+
+{% block title %}Transfer or Promote Student{% endblock %}
+
+{% block content %}
+<div class="container max-w-4xl mx-auto bg-white shadow-md rounded-md p-6">
+    <h2 class="text-xl font-bold mb-4">Student Transfer / Promotion</h2>
+
+    {% if messages %}
+    <div class="bg-green-100 text-green-700 p-3 rounded mb-4">
+        {% for message in messages %}
+        {{ message }}
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <form method="POST" id="transferForm">
+        {% csrf_token %}
+
+        <!-- Search box -->
+        <div class="mb-4">
+            <label for="student_search" class="font-semibold">Search Student (Name or Admission #):</label>
+            <input type="text" id="student_search" class="border p-2 w-full rounded mt-1"
+                placeholder="e.g. Victor or 0002">
+        </div>
+
+        <!-- Student dropdown -->
+        <div class="mb-4">
+            <label for="student_id" class="font-semibold">Select Student:</label>
+            <select name="student_id" id="student_id" class="border p-2 w-full rounded mt-1">
+                <option value="">-- Select Student --</option>
+                {% for student in students %}
+                <option value="{{ student.id }}" data-class="{{ student.class_ref }}"
+                    data-stream="{{ student.stream }}">
+                    {{ student.full_name }} - {{ student.admission_number }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- Current placement -->
+        <div id="student_details" class="mb-4 hidden">
+            <p><strong>Current Class:</strong> <span id="current_class"></span></p>
+            <p><strong>Current Stream:</strong> <span id="current_stream"></span></p>
+        </div>
+
+        <!-- New Class -->
+        <div class="mb-4">
+            <label for="new_class_id" class="font-semibold">New Class:</label>
+            <select name="new_class_id" id="new_class_id" class="border p-2 w-full rounded mt-1">
+                <option value="">-- Select New Class --</option>
+                {% for class in classes %}
+                <option value="{{ class.id }}">{{ class }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- New Stream (filtered dynamically) -->
+        <div class="mb-4">
+            <label for="new_stream_id" class="font-semibold">New Stream:</label>
+            <select name="new_stream_id" id="new_stream_id" class="border p-2 w-full rounded mt-1">
+                <option value="">-- Select Stream --</option>
+                {% for stream in streams %}
+                <option value="{{ stream.id }}">{{ stream }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- Optional Reason -->
+        <div class="mb-4">
+            <label for="reason" class="font-semibold">Reason (optional):</label>
+            <input type="text" name="reason" id="reason" class="border p-2 w-full rounded mt-1"
+                placeholder="e.g. Transfer, Promotion">
+        </div>
+
+        <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded">
+            Submit Transfer
+        </button>
+    </form>
+    <form method="POST">
+        {% csrf_token %}
+        <input type="hidden" name="promote" value="true">
+
+        <h3 class="text-lg font-bold mt-6">Promote Students</h3>
+        <p class="text-gray-600 mb-2">Select the stream for each promoted student</p>
+
+        <table class="w-full mb-6 text-sm border">
+            <thead>
+                <tr class="bg-gray-100">
+                    <th class="p-2 border">Student</th>
+                    <th class="p-2 border">Current Class</th>
+                    <th class="p-2 border">Current Stream</th>
+                    <th class="p-2 border">Select New Stream</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for student in students %}
+                <tr>
+                    <td class="p-2 border">{{ student.full_name }} ({{ student.admission_number }})</td>
+                    <td class="p-2 border">{{ student.class_ref }}</td>
+                    <td class="p-2 border">{{ student.stream }}</td>
+                    <td class="p-2 border">
+                        <select name="stream_{{ student.id }}" class="border rounded p-1 stream-select">
+                            {% for stream in next_streams %}
+                            <option value="{{ stream.id }}">{{ stream }}</option>
+                            {% endfor %}
+                        </select>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <button type="submit" class="bg-green-600 text-white py-2 px-4 rounded hover:bg-green-700">
+            Promote Students
+        </button>
+    </form>
+
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<script>
+    const students = {{ students| json_script: "student-data" }};
+
+    // Live search
+    $('#student_search').on('keyup', function () {
+        const query = $(this).val().toLowerCase();
+        $('#student_id option').each(function () {
+            const text = $(this).text().toLowerCase();
+            const value = $(this).val();
+            if (text.includes(query) || text.endsWith(query)) {
+                $(this).show();
+            } else if (value) {
+                $(this).hide();
+            }
+        });
+    });
+
+    // Show student details
+    $('#student_id').on('change', function () {
+        const selected = $(this).find(':selected');
+        const className = selected.data('class');
+        const streamName = selected.data('stream');
+
+        if (className || streamName) {
+            $('#current_class').text(className);
+            $('#current_stream').text(streamName);
+            $('#student_details').removeClass('hidden');
+        } else {
+            $('#student_details').addClass('hidden');
+        }
+    });
+
+    // Load filtered streams on class selection
+    $('#new_class_id').on('change', function () {
+        const classId = $(this).val();
+        const $streamSelect = $('#new_stream_id');
+
+        if (classId) {
+            $.get(`/api/students/streams/?class_id=${classId}`, function (data) {
+                $streamSelect.empty();
+                $streamSelect.append(`<option value="">-- Select Stream --</option>`);
+                data.forEach(function (stream) {
+                    $streamSelect.append(`<option value="${stream.id}">${stream.name}</option>`);
+                });
+            });
+        } else {
+            $streamSelect.html(`<option value="">-- Select Stream --</option>`);
+        }
+    });
+</script>
+{% endblock %}
