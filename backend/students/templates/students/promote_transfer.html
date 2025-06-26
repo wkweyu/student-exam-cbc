@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% load static %}
-{% load json_script %}
+
 
 {% block title %}Transfer or Promote Student{% endblock %}
 
@@ -123,7 +123,7 @@
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
 <script>
-    const students = {{ students| json_script: "student-data" }};
+    // { #const students = {{ students | json_script: "student-data" } };#}
 
     // Live search
     $('#student_search').on('keyup', function () {

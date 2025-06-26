@@ -1,0 +1,196 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Batch Student Promotion{% endblock %}
+
+{% block content %}
+<div class="container max-w-5xl mx-auto bg-white shadow-md p-6 rounded-md">
+    <h2 class="text-2xl font-bold mb-4">Batch Student Promotion</h2>
+
+    {% if messages %}
+    <div class="bg-green-100 text-green-800 p-3 rounded mb-4">
+        {% for message in messages %}
+        <p>{{ message }}</p>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <form method="get" class="mb-6">
+        <div class="grid grid-cols-2 gap-4">
+            <div>
+                <label for="from_class" class="font-semibold">From Class</label>
+                <select name="from_class" id="from_class_id" class="border p-2 w-full rounded mt-1">
+                    <option value="">-- Select Class --</option>
+                    {% for class in classes %}
+                    <option value="{{ class.id }}" {% if class.id|add:"" == from_class %}selected{% endif %}>
+                        {{ class }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div>
+                <label for="from_stream" class="font-semibold">From Stream</label>
+                <select name="from_stream" id="from_stream_id" class="border p-2 w-full rounded mt-1">
+                    <option value="">-- Select Stream --</option>
+                    <!-- We'll populate this dynamically using jQuery -->
+                </select>
+            </div>
+        </div>
+
+        <button type="submit" class="mt-4 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+            Load Students
+        </button>
+    </form>
+
+
+    {% if students %}
+    <form method="POST" id="promoteForm">
+        {% csrf_token %}
+        <div class="grid grid-cols-3 gap-4 mb-4">
+            <div>
+                <label class="font-semibold">To Grade:</label>
+                <select name="to_class" id="to_class" class="border w-full p-2 rounded" required>
+                    <option value="">-- Select New Grade --</option>
+                    {% for cls in classes %}
+                    <option value="{{ cls.id }}">{{ cls }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div>
+                <label class="font-semibold">To Stream:</label>
+                <select name="to_stream" id="to_stream" class="border w-full p-2 rounded" required>
+                    <option value="">-- Select New Stream --</option>
+                    {% for s in streams %}
+                    <option value="{{ s.id }}">{{ s }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div>
+                <label class="font-semibold block mb-1 invisible">Promote</label>
+                <button type="submit"
+                    class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded w-full">Promote
+                    Students</button>
+            </div>
+        </div>
+
+        <table class="table-auto w-full text-sm border">
+            <thead class="bg-gray-100">
+                <tr>
+                    <th class="p-2 border">Adm No</th>
+                    <th class="p-2 border">Full Name</th>
+                    <th class="p-2 border">Gender</th>
+                    <th class="p-2 border">Current Class</th>
+                    <th class="p-2 border">Current Stream</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for student in students %}
+                <input type="hidden" name="student_ids" value="{{ student.id }}">
+                <tr>
+                    <td class="p-2 border">{{ student.admission_number }}</td>
+                    <td class="p-2 border">{{ student.full_name }}</td>
+                    <td class="p-2 border">{{ student.gender }}</td>
+                    <td class="p-2 border">{{ student.class_ref }}</td>
+                    <td class="p-2 border">{{ student.stream }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+    </form>
+
+    <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="from_class_id" value="{{ from_class }}">
+        <input type="hidden" name="from_stream_id" value="{{ from_stream }}">
+
+        <table class="w-full table-auto border mt-6 text-sm">
+            <thead>
+                <tr class="bg-gray-100">
+                    <th class="p-2 border">Select</th>
+                    <th class="p-2 border">Name</th>
+                    <th class="p-2 border">Admission #</th>
+                    <th class="p-2 border">Class</th>
+                    <th class="p-2 border">Stream</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for student in students %}
+                <tr>
+                    <td class="border p-2 text-center">
+                        <input type="checkbox" name="student_ids" value="{{ student.id }}" checked>
+                    </td>
+                    <td class="border p-2">{{ student.full_name }}</td>
+                    <td class="border p-2">{{ student.admission_number }}</td>
+                    <td class="border p-2">{{ student.class_ref }}</td>
+                    <td class="border p-2">{{ student.stream }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div class="mt-6 grid grid-cols-2 gap-4">
+            <div>
+                <label for="to_class" class="font-semibold">To Class</label>
+                <select name="to_class" class="border p-2 w-full rounded mt-1" required>
+                    <option value="">-- Select Class --</option>
+                    {% for class in classes %}
+                    <option value="{{ class.id }}">{{ class }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label for="to_stream" class="font-semibold">To Stream</label>
+                <select name="to_stream" class="border p-2 w-full rounded mt-1" required>
+                    <option value="">-- Select Stream --</option>
+                    {% for stream in streams %}
+                    <option value="{{ stream.id }}">{{ stream }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <button type="submit" class="mt-4 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+            Promote Selected Students
+        </button>
+    </form>
+
+    {% endif %}
+</div>
+<script>
+    $(document).ready(function () {
+        function loadStreams(classId, selectedStreamId = null) {
+            if (!classId) {
+                $('#from_stream_id').html(`<option value="">-- Select Stream --</option>`);
+                return;
+            }
+
+            $.get(`/api/students/streams/?class_id=${classId}`, function (data) {
+                let options = `<option value="">-- Select Stream --</option>`;
+                data.forEach(stream => {
+                    const selected = stream.id == selectedStreamId ? 'selected' : '';
+                    options += `<option value="${stream.id}" ${selected}>${stream.name}</option>`;
+                });
+                $('#from_stream_id').html(options);
+            });
+        }
+
+        // Auto-load streams if class is preselected (on page reload)
+        const initialClassId = $('#from_class_id').val();
+        const selectedStreamId = "{{ from_stream|default_if_none:'' }}";
+        if (initialClassId) {
+            loadStreams(initialClassId, selectedStreamId);
+        }
+
+        // Load on change
+        $('#from_class_id').on('change', function () {
+            const classId = $(this).val();
+            loadStreams(classId);
+        });
+    });
+</script>
+
+{% endblock %}

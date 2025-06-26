@@ -15,7 +15,7 @@ from .views import (
     get_streams_by_class,
     student_transfer_or_promote,
     promote_class_students,
-    class_list_view
+    promote_students_batch
 
 )
 from django.conf import settings
@@ -43,7 +43,9 @@ urlpatterns = [
     path('ajax/get-streams/', get_streams_by_class, name='get_streams_by_class'),
     path('student/transfer-promote/', student_transfer_or_promote, name='student_transfer_or_promote'),
     path('promote/<int:class_id>/', promote_class_students, name='promote_class_students'),
-    path('classes/', class_list_view, name='class_list'),
+    path("promote/batch/", promote_students_batch, name="promote_students_batch"),
+    
+
     
 
 

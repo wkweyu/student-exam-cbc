@@ -17,6 +17,7 @@ from rest_framework.response import Response
 from .serializers import StudentSerializer
 from django.http import JsonResponse
 from students.models import GRADE_LEVELS
+from django.views.decorators.http import require_http_methods
 
 
 
@@ -232,43 +233,131 @@ def student_transfer_or_promote(request):
     streams = Stream.objects.all()
 
     if request.method == 'POST':
+        if request.POST.get('promote') == 'true':
+            # PROMOTION LOGIC
+            promoted_students = []
+            for student in students:
+                stream_key = f'stream_{student.id}'
+                new_stream_id = request.POST.get(stream_key)
+
+                if not new_stream_id:
+                    continue  # Skip if no stream selected for this student
+
+                # Get next class
+                current_class = student.class_ref
+                try:
+                    current_index = [x[0] for x in GRADE_LEVELS].index(current_class.grade_level)
+                    next_grade = GRADE_LEVELS[current_index + 1][0]
+                except (ValueError, IndexError):
+                    continue  # Cannot promote beyond last grade
+
+                next_year = current_class.year + 1
+                next_class, _ = Class.objects.get_or_create(grade_level=next_grade, year=next_year)
+                new_stream = Stream.objects.get(id=new_stream_id)
+
+                # Log promotion
+                StudentPromotionHistory.objects.create(
+                    student=student,
+                    from_class=student.class_ref,
+                    from_stream=student.stream,
+                    to_class=next_class,
+                    to_stream=new_stream,
+                    reason="Promotion"
+                )
+
+                # Update student
+                student.class_ref = next_class
+                student.stream = new_stream
+                student.save()
+                promoted_students.append(student)
+
+            messages.success(request, f"{len(promoted_students)} students promoted successfully.")
+            return redirect('student_transfer_or_promote')
+
+        # TRANSFER LOGIC
         student_id = request.POST.get('student_id')
         new_class_id = request.POST.get('new_class_id')
         new_stream_id = request.POST.get('new_stream_id')
         reason = request.POST.get('reason', 'Transfer')
 
-        student = get_object_or_404(Student, pk=student_id)
-        new_class = get_object_or_404(Class, pk=new_class_id)
-        new_stream = get_object_or_404(Stream, pk=new_stream_id)
+        if student_id and new_class_id and new_stream_id:
+            student = get_object_or_404(Student, pk=student_id)
+            new_class = get_object_or_404(Class, pk=new_class_id)
+            new_stream = get_object_or_404(Stream, pk=new_stream_id)
 
-        # Save promotion/transfer record
-        StudentPromotionHistory.objects.create(
-            student=student,
-            from_class=student.class_ref,
-            from_stream=student.stream,
-            to_class=new_class,
-            to_stream=new_stream,
-            reason=reason
-        )
+            StudentPromotionHistory.objects.create(
+                student=student,
+                from_class=student.class_ref,
+                from_stream=student.stream,
+                to_class=new_class,
+                to_stream=new_stream,
+                reason=reason
+            )
 
-        # Update student placement
-        student.class_ref = new_class
-        student.stream = new_stream
-        student.save()
+            student.class_ref = new_class
+            student.stream = new_stream
+            student.save()
 
-        messages.success(request, f"{student.full_name()} transferred to {new_class} - {new_stream} successfully.")
+            messages.success(request, f"{student.full_name()} transferred successfully.")
+            return redirect('student_transfer_or_promote')
 
-        return render(request, 'students/promote_transfer.html', {
-            'students': students,
-            'classes': classes,
-            'streams': streams,
-            'success_message': "Transfer completed successfully."
-        })
-
+    # GET rendering
+    next_streams = Stream.objects.all()
     return render(request, 'students/promote_transfer.html', {
         'students': students,
         'classes': classes,
         'streams': streams,
+        'next_streams': next_streams,
+    })
+#Promote students batch
+@login_required
+@require_http_methods(["GET", "POST"])
+def promote_students_batch(request):
+    classes = Class.objects.order_by("grade_level", "year")
+    streams = Stream.objects.all()
+    students = []
+
+    from_class_id = request.GET.get("from_class")
+    from_stream_id = request.GET.get("from_stream")
+
+    if request.method == "GET" and from_class_id:
+        students = Student.objects.filter(class_ref_id=from_class_id)
+        if from_stream_id:
+            students = students.filter(stream_id=from_stream_id)
+        students = students.select_related("class_ref", "stream")
+
+    elif request.method == "POST":
+        student_ids = request.POST.getlist("student_ids")
+        to_class_id = request.POST.get("to_class")
+        to_stream_id = request.POST.get("to_stream")
+
+        to_class = get_object_or_404(Class, pk=to_class_id)
+        to_stream = get_object_or_404(Stream, pk=to_stream_id)
+
+        for sid in student_ids:
+            student = Student.objects.get(pk=sid)
+
+            StudentPromotionHistory.objects.create(
+                student=student,
+                from_class=student.class_ref,
+                from_stream=student.stream,
+                to_class=to_class,
+                to_stream=to_stream,
+                reason="Promotion"
+            )
+            student.class_ref = to_class
+            student.stream = to_stream
+            student.save()
+
+        messages.success(request, f"{len(student_ids)} students promoted to {to_class} - {to_stream}.")
+        return redirect("promote_students_batch")
+
+    return render(request, "students/promote_students_batch.html", {
+        "classes": classes,
+        "streams": streams,
+        "students": students,
+        "from_class": request.GET.get("from_class", ""),   # pass selected class for template use
+        "from_stream": request.GET.get("from_stream", ""),  # pass selected stream for template use
     })
 
 
