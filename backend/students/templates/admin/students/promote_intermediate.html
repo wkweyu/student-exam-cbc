@@ -1,0 +1,59 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_urls static %}
+
+{% block content %}
+<form method="post" id="promote_form">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="promote_students">
+    <input type="hidden" name="post" value="yes">
+
+    <h2>Promote {{ students|length }} selected students to:</h2>
+
+    <div class="form-row">
+        <label for="target_class">Target Class:</label>
+        <select name="target_class" id="target_class" required>
+            <option value="">---------</option>
+            {% for class in classes %}
+            <option value="{{ class.id }}">{{ class }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div class="form-row">
+        <label for="target_stream">Target Stream (optional):</label>
+        <select name="target_stream" id="target_stream">
+            <option value="">---------</option>
+            {% for stream in streams %}
+            <option value="{{ stream.id }}">{{ stream }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div class="submit-row">
+        <input type="submit" class="default" name="apply" value="Promote Students">
+        <a href="." class="button cancel-link">Cancel</a>
+    </div>
+</form>
+
+<script src="{% static 'admin/js/vendor/jquery/jquery.js' %}"></script>
+<script>
+    $(document).ready(function () {
+        $('#target_class').change(function () {
+            var classId = $(this).val();
+            if (classId) {
+                $.ajax({
+                    url: '{% url "admin:get_streams" %}',
+                    data: {
+                        'class_id': classId
+                    },
+                    success: function (data) {
+                        $('#target_stream').html(data);
+                    }
+                });
+            } else {
+                $('#target_stream').html('<option value="">---------</option>');
+            }
+        });
+    });
+</script>
+{% endblock %}

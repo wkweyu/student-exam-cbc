@@ -7,6 +7,8 @@ from datetime import datetime
 from django.db import models
 from django.core.exceptions import ValidationError
 
+
+
 # Constants
 SCHOOL_LEVELS = [
     ('PP', 'Pre-Primary'),
@@ -104,6 +106,15 @@ class Student(models.Model):
     def generate_admission_number(self):
         # Customize this logic as needed
         return f"ADM{get_random_string(6).upper()}"
+    
+    legacy_admission_number = models.CharField(
+        max_length=20, 
+        blank=True, 
+        null=True,
+        unique=True,
+        verbose_name="Legacy Admission Number",
+        help_text="Original admission number from legacy system"
+    )
 
     first_name = models.CharField(max_length=50)
     middle_name = models.CharField(max_length=50, blank=True)
@@ -142,76 +153,12 @@ class Student(models.Model):
     def current_age(self):
         import datetime
         return int((datetime.date.today() - self.date_of_birth).days / 365.25)
-
-class Subject(models.Model):
-    name = models.CharField(max_length=100)
-    code = models.CharField(max_length=10, unique=True)
-    description = models.TextField(blank=True)
-    is_core = models.BooleanField(default=False)
-
-    class Meta:
-        ordering = ['name']
-
-    def __str__(self):
-        return f"{self.name} ({self.code})"
-
-class Exam(models.Model):
-    EXAM_TYPES = [
-        ('T1', 'Term 1'),
-        ('T2', 'Term 2'),
-        ('T3', 'Term 3'),
-        ('MS', 'Mid Semester'),
-        ('ES', 'End Semester'),
-        ('AN', 'Annual')
-    ]
-
-    name = models.CharField(max_length=100)
-    exam_type = models.CharField(max_length=2, choices=EXAM_TYPES)
-    year = models.PositiveIntegerField()
-    start_date = models.DateField()
-    end_date = models.DateField()
-    is_active = models.BooleanField(default=True)
-
-    class Meta:
-        unique_together = ('name', 'year')
-        ordering = ['-year', 'start_date']
-
-    def __str__(self):
-        return f"{self.name} {self.year}"
-
-class Score(models.Model):
-    student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='scores')
-    subject = models.ForeignKey(Subject, on_delete=models.CASCADE, related_name='scores')
-    exam = models.ForeignKey(Exam, on_delete=models.CASCADE, related_name='scores')
-    score = models.DecimalField(max_digits=5, decimal_places=2, validators=[MinValueValidator(0), MaxValueValidator(100)])
-    grade = models.CharField(max_length=2, blank=True)
-    comment = models.TextField(blank=True)
-    recorded_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
-
-    class Meta:
-        unique_together = ('student', 'subject', 'exam')
-        verbose_name = "Exam Score"
-        verbose_name_plural = "Exam Scores"
-
-    def __str__(self):
-        return f"{self.student} - {self.subject}: {self.score}"
-
-    def save(self, *args, **kwargs):
-        if not self.grade:
-            self.grade = self.calculate_grade()
-        super().save(*args, **kwargs)
-
-    def calculate_grade(self):
-        if self.score >= 80:
-            return 'A'
-        elif self.score >= 70:
-            return 'B'
-        elif self.score >= 60:
-            return 'C'
-        elif self.score >= 50:
-            return 'D'
-        else:
-            return 'F'
+    
+    def delete(self, *args, **kwargs):
+        from django.db import transaction
+        with transaction.atomic():
+            self.exam_results.all().delete()
+            super().delete(*args, **kwargs)
 
 class StudentPromotionHistory(models.Model):
     student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='promotion_history')
@@ -224,7 +171,6 @@ class StudentPromotionHistory(models.Model):
 
     def __str__(self):
         return f"{self.student} promoted to {self.to_class} - {self.to_stream} on {self.date}"
-
 
 
 phone_validator = RegexValidator(
@@ -245,3 +191,4 @@ emergency_contact = models.CharField(
     validators=[phone_validator],
     help_text="Alternate phone number for emergencies"
 )
+

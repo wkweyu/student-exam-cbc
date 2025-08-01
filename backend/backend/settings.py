@@ -31,6 +31,7 @@ INSTALLED_APPS = [
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
+    'import_export',
 
     # Your apps
     'users',
@@ -149,11 +150,7 @@ ACCOUNT_SIGNUP_FIELDS = {
 }
 
 ACCOUNT_EMAIL_VERIFICATION = 'none'   # Disable email verification
-ACCOUNT_LOGIN_METHODS = {'username'}
-ACCOUNT_SIGNUP_FIELDS = {
-    'username': {'required': True},
-    'email': {'required': True}
-}
+
 # CORS
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True

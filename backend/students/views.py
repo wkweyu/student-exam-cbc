@@ -15,9 +15,10 @@ from django.contrib import messages
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from .serializers import StudentSerializer
-from django.http import JsonResponse
+from django.http import JsonResponse,Http404
 from students.models import GRADE_LEVELS
 from django.views.decorators.http import require_http_methods
+
 
 
 
@@ -359,6 +360,20 @@ def promote_students_batch(request):
         "from_class": request.GET.get("from_class", ""),   # pass selected class for template use
         "from_stream": request.GET.get("from_stream", ""),  # pass selected stream for template use
     })
+
+
+def get_student_details(request, student_id):
+    try:
+        student = Student.objects.select_related('class_ref', 'stream').get(id=student_id)
+        data = {
+            'class': str(student.class_ref) if student.class_ref else None,
+            'stream': str(student.stream) if student.stream else None,
+            'class_id': student.class_ref.id if student.class_ref else None,
+            'stream_id': student.stream.id if student.stream else None,
+        }
+        return JsonResponse(data)
+    except Student.DoesNotExist:
+        raise Http404("Student not found")
 
 
 def test_base(request):

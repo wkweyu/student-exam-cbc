@@ -1,0 +1,34 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block content %}
+<div id="content-main">
+    <form method="post" id="student-promotion-form">
+        {% csrf_token %}
+
+        <div class="module aligned">
+            <h2>Student Promotion</h2>
+            <div class="form-row">
+                <label for="from_class">From Class:</label>
+                <select name="from_class" id="from_class">
+                    {% for class in classes %}
+                    <option value="{{ class.id }}">{{ class }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-row">
+                <label for="to_class">To Class:</label>
+                <select name="to_class" id="to_class">
+                    {% for class in classes %}
+                    <option value="{{ class.id }}">{{ class }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <div class="submit-row">
+            <input type="submit" value="Promote Students" class="default">
+        </div>
+    </form>
+</div>
+{% endblock %}
