@@ -22,7 +22,7 @@
                 <select name="from_class" id="from_class_id" class="border p-2 w-full rounded mt-1">
                     <option value="">-- Select Class --</option>
                     {% for class in classes %}
-                    <option value="{{ class.id }}" {% if class.id|add:"" == from_class %}selected{% endif %}>
+                    <option value="{{ class.id }}" {% if class.id|add:""==from_class %}selected{% endif %}>
                         {{ class }}
                     </option>
                     {% endfor %}
@@ -168,7 +168,7 @@
                 return;
             }
 
-            $.get(`/api/students/streams/?class_id=${classId}`, function (data) {
+            $.get('/students/get-streams-by-class/?class_id=' + classId, function (data) {
                 let options = `<option value="">-- Select Stream --</option>`;
                 data.forEach(stream => {
                     const selected = stream.id == selectedStreamId ? 'selected' : '';

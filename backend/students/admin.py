@@ -11,6 +11,12 @@ from import_export.admin import ImportExportModelAdmin, ImportExportActionModelA
 from import_export.widgets import ForeignKeyWidget, DateWidget
 from import_export.formats import base_formats
 from .models import Student, Class, Stream, StudentPromotionHistory
+<<<<<<< HEAD
+=======
+from django.db import transaction
+import re
+
+>>>>>>> ceaac762fe1569c47cbc57bdb8721c38116c0c2d
 
 
 @admin.register(Class)
@@ -19,6 +25,7 @@ class ClassAdmin(ImportExportModelAdmin):  # Changed from admin.ModelAdmin
     list_filter = ('grade_level', 'year')
     search_fields = ('grade_level',)  # Added search
     list_per_page = 50  # Added pagination
+<<<<<<< HEAD
 
     def student_count(self, obj):
         return obj.students.count()
@@ -31,20 +38,74 @@ class StreamAdmin(ImportExportModelAdmin):  # Changed from admin.ModelAdmin
     search_fields = ('name', 'class_ref__grade_level')  # Added search
     list_per_page = 50  # Added pagination
 
+=======
+
+>>>>>>> ceaac762fe1569c47cbc57bdb8721c38116c0c2d
     def student_count(self, obj):
         return obj.students.count()
     student_count.short_description = 'Students'
 
+<<<<<<< HEAD
+=======
+
+
+class StudentForm(forms.ModelForm):
+    class Meta:
+        model = Student
+        exclude = ['admission_number']
+        widgets = {
+            'date_of_birth': forms.DateInput(attrs={'type': 'date'}),
+            'class_ref': forms.Select(attrs={
+                'onchange': 'this.form.submit();',  # Auto-submit when class changes
+                'class': 'auto-submit',
+            }),
+        }
+        fields = '__all__'
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        
+        # Filter streams based on selected class
+        if 'class_ref' in self.data:
+            try:
+                class_id = int(self.data.get('class_ref'))
+                self.fields['stream_ref'].queryset = Stream.objects.filter(
+                    class_ref_id=class_id
+                ).order_by('name')
+            except (ValueError, TypeError):
+                pass  # Invalid input from the client; ignore and fallback to empty queryset
+        elif self.instance.pk and self.instance.class_ref:
+            # If editing an existing instance, show streams for its class
+            self.fields['stream_ref'].queryset = self.instance.class_ref.streams.all()
+        else:
+            # No class selected yet - show empty queryset
+            self.fields['stream_ref'].queryset = Stream.objects.none()
+
+    def clean_admission_number(self):
+        admission_number = self.cleaned_data['admission_number']
+        if not re.match(r'^ADM-\d{4}$', admission_number):
+            raise forms.ValidationError("Admission number must be in the format ADM-0001.")
+        return admission_number
+
+>>>>>>> ceaac762fe1569c47cbc57bdb8721c38116c0c2d
 class StudentAdminForm(forms.ModelForm):
     class Meta:
         model = Student
         fields = '__all__'
         widgets = {
             'date_of_birth': forms.DateInput(attrs={'type': 'date'}),
+<<<<<<< HEAD
             'date_admitted': forms.DateInput(attrs={'type': 'date'})
         }
 
 
+=======
+            'date_admitted': forms.DateInput(attrs={'type': 'date'}),
+            'class_ref': forms.Select(attrs={'id': 'id_class_ref'}),
+            'stream': forms.Select(attrs={'id': 'id_stream'}),
+        }
+
+>>>>>>> ceaac762fe1569c47cbc57bdb8721c38116c0c2d
 class StudentResource(resources.ModelResource):
     class_ref = fields.Field(
         column_name='class_ref',
@@ -156,6 +217,11 @@ class StudentAdmin(ImportExportActionModelAdmin, ImportExportModelAdmin):
         'generate_admission_numbers',
         'migrate_legacy_numbers'
     ]
+<<<<<<< HEAD
+=======
+    class Media:
+        js = ('students/js/student_form_autofill.js',)
+>>>>>>> ceaac762fe1569c47cbc57bdb8721c38116c0c2d
 
     # Custom methods
     def admin_photo(self, obj):
@@ -194,18 +260,41 @@ class StudentAdmin(ImportExportActionModelAdmin, ImportExportModelAdmin):
             path('get-streams/',
                 self.admin_site.admin_view(self.get_streams),
                 name='get_streams'),
+<<<<<<< HEAD
         ]
         return custom_urls + urls
 
+=======
+            path('student/<int:student_id>/registration-slip/',
+                self.admin_site.admin_view(self.registration_slip),
+                name='students_student_registration_slip'),
+        ]
+        return custom_urls + urls
+    
+>>>>>>> ceaac762fe1569c47cbc57bdb8721c38116c0c2d
     def registration_view(self, request):
         if request.method == 'POST':
             form = self.form(request.POST, request.FILES)
             if form.is_valid():
                 student = form.save()
                 messages.success(request, f'Student {student.full_name()} registered successfully')
+<<<<<<< HEAD
                 return redirect('admin:students_student_changelist')
         
         form = self.form()
+=======
+                # Redirect to print slip after save
+                if '_save' in request.POST:
+                    return redirect('admin:students_student_registration_slip', student.id)
+                elif '_addanother' in request.POST:
+                    return redirect('admin:student_registration')
+                elif '_continue' in request.POST:
+                     return redirect('admin:students_student_change', student.id)
+                #return redirect('admin:students_student_registration_slip', student.id)
+        else:
+            form = self.form()
+
+>>>>>>> ceaac762fe1569c47cbc57bdb8721c38116c0c2d
         context = self.admin_site.each_context(request)
         context.update({
             'opts': self.model._meta,
@@ -265,6 +354,7 @@ class StudentAdmin(ImportExportActionModelAdmin, ImportExportModelAdmin):
                 student.save()
                 count += 1
         self.message_user(request, f"Migrated legacy numbers for {count} students.")
+<<<<<<< HEAD
 
     migrate_legacy_numbers.short_description = "Migrate legacy to admission numbers"
 
@@ -312,6 +402,56 @@ class StudentAdmin(ImportExportActionModelAdmin, ImportExportModelAdmin):
             'title': 'Promote Students'
         })
     promote_students.short_description = "Promote selected students"
+=======
+    migrate_legacy_numbers.short_description = "Migrate legacy to admission numbers"
+
+    # def promote_students(self, request, queryset):
+    #     if 'apply' in request.POST:
+    #         target_class_id = request.POST.get('target_class')
+    #         target_stream_id = request.POST.get('target_stream')
+
+    #         if not target_class_id:
+    #             self.message_user(request, "Please select a target class.", level='error')
+    #             return redirect(request.get_full_path())
+
+    #     to_class = Class.objects.get(id=target_class_id)
+    #     to_stream = Stream.objects.get(id=target_stream_id) if target_stream_id else None
+
+    #     promoted_count = 0
+    #     with transaction.atomic():
+    #         for student in queryset:
+    #                 StudentPromotionHistory.objects.create(
+    #                     student=student,
+    #                     from_class=student.class_ref,
+    #                     from_stream=student.stream,
+    #                     to_class=to_class,
+    #                     to_stream=to_stream,
+    #                     reason="Promotion via admin action"
+    #                 )
+    #                 student.class_ref = to_class
+    #                 student.stream = to_stream
+    #                 student.save()
+    #                 promoted_count += 1
+
+    #         self.message_user(request, f"{promoted_count} students promoted successfully.")
+    #         return redirect(request.get_full_path())
+
+                
+    #     # Display the promotion form
+    #     classes = Class.objects.all().order_by('grade_level', 'year')
+    #     streams = Stream.objects.none()
+
+    #     context = self.admin_site.each_context(request)
+    #     context.update({
+    #         'students': queryset,
+    #         'classes': classes,
+    #         'streams': streams,
+    #         'title': 'Promote Students',
+    #         'opts': self.model._meta,
+    #         'action_checkbox_name': admin.helpers.ACTION_CHECKBOX_NAME,
+    #     })
+    #     return render(request, 'admin/students/promote_intermediate.html', context)
+>>>>>>> ceaac762fe1569c47cbc57bdb8721c38116c0c2d
 
     def export_selected_students(self, request, queryset):
         """Custom export action for selected students"""
@@ -323,8 +463,46 @@ class StudentAdmin(ImportExportActionModelAdmin, ImportExportModelAdmin):
         response['Content-Disposition'] = f'attachment; filename=students_export_{timezone.now().date()}.xlsx'
         return response
     export_selected_students.short_description = "Export selected students"
+<<<<<<< HEAD
     
 @admin.register(StudentPromotionHistory)
 class PromotionHistoryAdmin(admin.ModelAdmin):
     list_display = ("student", "from_class", "to_class", "from_stream", "to_stream", "reason", "timestamp")
     list_filter = ("from_class", "to_class", "timestamp")
+=======
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related(
+            'class_ref', 'stream'
+        ).prefetch_related(
+            'scores', 'promotion_history', 'exam_results'
+        )
+    def delete_model(self, request, obj):
+        try:
+            # Handle deletion safely
+            with transaction.atomic():
+                obj.exam_results.all().delete()
+                super().delete_model(request, obj)
+        except Exception as e:
+            from django.contrib import messages
+            messages.error(request, f"Error deleting student: {str(e)}")
+            raise
+        
+    def registration_slip(self, request, student_id):
+        student = Student.objects.get(id=student_id)
+        context = self.admin_site.each_context(request)
+        context.update({
+            'opts': self.model._meta,
+            'student': student,
+            'title': 'Registration Slip'
+        })
+        return render(request, 'admin/students/registration_slip.html', context)
+        
+        
+@admin.register(StudentPromotionHistory)
+class PromotionHistoryAdmin(admin.ModelAdmin):
+    list_display = ("student", "from_class", "to_class", "from_stream", "to_stream", "reason", "date")
+    list_filter = ("from_class", "to_class", "date")
+
+    class Media:
+        js = ('students/js/promotion_autofill.js',)
+>>>>>>> ceaac762fe1569c47cbc57bdb8721c38116c0c2d

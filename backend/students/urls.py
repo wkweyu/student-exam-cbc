@@ -2,7 +2,11 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from . import views
 
+<<<<<<< HEAD
 app_name = 'students'  # Add namespace
+=======
+app_name = 'students'
+>>>>>>> ceaac762fe1569c47cbc57bdb8721c38116c0c2d
 
 router = DefaultRouter()
 router.register('students', views.StudentViewSet, basename='student')
@@ -12,11 +16,23 @@ router.register('streams', views.StreamViewSet, basename='stream')
 urlpatterns = [
     # API endpoints
     path('', include(router.urls)),
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> ceaac762fe1569c47cbc57bdb8721c38116c0c2d
     # Web views
     path('register/', views.StudentRegistrationView.as_view(), name='student-register'),
     path('register-form/', views.student_register_page, name='student-register-form'),
     path('list/', views.StudentListView.as_view(), name='student-list'),
+<<<<<<< HEAD
     
     # Add other patterns one at a time
 ]
+=======
+    path('promote-students-batch/', views.promote_students_batch, name='promote_students_batch'),
+    path('transfer-or-promote/', views.student_transfer_or_promote, name='student_transfer_or_promote'),
+    path('get-streams-by-class/', views.get_streams_by_class, name='get_streams_by_class'),
+    path('get-student-details/<int:student_id>/', views.get_student_details, name='get_student_details'),
+]
+>>>>>>> ceaac762fe1569c47cbc57bdb8721c38116c0c2d

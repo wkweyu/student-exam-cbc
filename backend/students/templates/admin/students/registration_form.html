@@ -17,4 +17,27 @@
         </div>
     </form>
 </div>
+<<<<<<< HEAD
+=======
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $(document).ready(function () {
+        $('#id_class_ref').change(function () {
+            var classId = $(this).val();
+            if (classId) {
+                $.ajax({
+                    url: "{% url 'admin:get_streams' %}",
+                    data: { 'class_id': classId },
+                    success: function (data) {
+                        $('#id_stream').html(data);
+                    }
+                });
+            } else {
+                $('#id_stream').html('<option value="">---------</option>');
+            }
+        });
+    });
+</script>
+
+>>>>>>> ceaac762fe1569c47cbc57bdb8721c38116c0c2d
 {% endblock %}
