@@ -197,7 +197,4 @@ emergency_contact = models.CharField(
     help_text="Alternate phone number for emergencies"
 )
 
-<<<<<<< HEAD
 
-=======
->>>>>>> ceaac762fe1569c47cbc57bdb8721c38116c0c2d

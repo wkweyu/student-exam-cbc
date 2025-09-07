@@ -43,18 +43,15 @@ class Exam(models.Model):
     stream = models.ForeignKey(Stream, on_delete=models.CASCADE)
     weight = models.FloatField(default=1.0)
 
-<<<<<<< HEAD
     def __str__(self):
         return f"{self.name} - {self.stream}"
 
-=======
     class Meta:
         unique_together = ('name', 'year')
         ordering = ['-year', 'start_date']
 
     def __str__(self):
         return f"{self.name} {self.year}"
->>>>>>> ceaac762fe1569c47cbc57bdb8721c38116c0c2d
 
 class ExamPaper(models.Model):
     exam = models.ForeignKey(Exam, on_delete=models.CASCADE, related_name='papers')
@@ -111,10 +108,8 @@ class Score(models.Model):
 
 
 class ExamResult(models.Model):
-<<<<<<< HEAD
     student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name="exam_results")
     exam_paper = models.ForeignKey(ExamPaper, on_delete=models.CASCADE, related_name="results")
-=======
     student = models.ForeignKey(
         Student, 
         on_delete=models.CASCADE, 
@@ -122,7 +117,6 @@ class ExamResult(models.Model):
         db_constraint= False
     )
     exam_paper = models.ForeignKey('ExamPaper', on_delete=models.CASCADE)
->>>>>>> ceaac762fe1569c47cbc57bdb8721c38116c0c2d
     marks = models.FloatField()
     subject = models.ForeignKey(Subject, on_delete=models.CASCADE)
     score = models.DecimalField(max_digits=5, decimal_places=2)
@@ -131,12 +125,9 @@ class ExamResult(models.Model):
         #db_table = 'students_examresult'  # Explicit table name
         managed = True
         unique_together = ('student', 'exam_paper', 'subject')
-<<<<<<< HEAD
 
     def __str__(self):
         return f"{self.student} - {self.subject} ({self.marks})"
-=======
         verbose_name = 'Exam Result'
         verbose_name_plural = 'Exam Results'
         
->>>>>>> ceaac762fe1569c47cbc57bdb8721c38116c0c2d
