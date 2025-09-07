@@ -31,6 +31,7 @@ INSTALLED_APPS = [
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
+    'import_export',
 
     # Your apps
     'users',

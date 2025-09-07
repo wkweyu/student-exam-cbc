@@ -6,6 +6,8 @@ from django.utils.crypto import get_random_string
 from datetime import datetime
 from django.db import models
 from django.core.exceptions import ValidationError
+#from exams.models import ExamPaper
+
 
 # Constants
 SCHOOL_LEVELS = [
@@ -104,6 +106,15 @@ class Student(models.Model):
     def generate_admission_number(self):
         # Customize this logic as needed
         return f"ADM{get_random_string(6).upper()}"
+    
+    legacy_admission_number = models.CharField(
+        max_length=20, 
+        blank=True, 
+        null=True,
+        unique=True,
+        verbose_name="Legacy Admission Number",
+        help_text="Original admission number from legacy system"
+    )
 
     first_name = models.CharField(max_length=50)
     middle_name = models.CharField(max_length=50, blank=True)
@@ -221,6 +232,9 @@ class StudentPromotionHistory(models.Model):
     to_stream = models.ForeignKey(Stream, on_delete=models.SET_NULL, null=True, related_name='promoted_stream_to')
     reason = models.CharField(max_length=100, default='Promotion')  # e.g. Promotion, Correction, Transfer
     date = models.DateField(default=timezone.now)
+    timestamp = models.DateTimeField(auto_now_add=True)
+    
+
 
     def __str__(self):
         return f"{self.student} promoted to {self.to_class} - {self.to_stream} on {self.date}"
@@ -245,3 +259,5 @@ emergency_contact = models.CharField(
     validators=[phone_validator],
     help_text="Alternate phone number for emergencies"
 )
+
+

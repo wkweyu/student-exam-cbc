@@ -1,0 +1,16 @@
+/* Custom admin styles */
+#student-registration-form .form-row {
+  padding: 10px;
+  border-bottom: 1px solid #eee;
+}
+
+#student-registration-form .form-row:last-child {
+  border-bottom: none;
+}
+
+/* Photo preview */
+.image-preview {
+  max-width: 200px;
+  max-height: 200px;
+  margin: 10px 0;
+}

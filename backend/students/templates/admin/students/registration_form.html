@@ -1,0 +1,20 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_urls static admin_modify %}
+
+{% block content %}
+<div id="content-main">
+    <form method="post" enctype="multipart/form-data" id="student-registration-form">
+        {% csrf_token %}
+
+        {% for fieldset in adminform %}
+        {% include "admin/includes/fieldset.html" %}
+        {% endfor %}
+
+        <div class="submit-row">
+            <input type="submit" value="Register" class="default" name="_save">
+            <input type="submit" value="Register and add another" name="_addanother">
+            <input type="submit" value="Register and continue editing" name="_continue">
+        </div>
+    </form>
+</div>
+{% endblock %}
